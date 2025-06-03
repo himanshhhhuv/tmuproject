@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import { currentUser } from "@clerk/nextjs/server";
 import Image from "next/image";
 import Link from "next/link";
+import { ApprovalStatus } from "@prisma/client";
 
 const PrincipalEventsPage = async () => {
   const user = await currentUser();
@@ -10,13 +11,13 @@ const PrincipalEventsPage = async () => {
   // Get event statistics
   const totalEvents = await prisma.event.count();
   const pendingEvents = await prisma.event.count({
-    where: { approvalStatus: "PENDING" },
+    where: { approvalStatus: ApprovalStatus.PENDING },
   });
   const rejectedEvents = await prisma.event.count({
-    where: { approvalStatus: "REJECTED" },
+    where: { approvalStatus: ApprovalStatus.REJECTED },
   });
   const approvedEvents = await prisma.event.count({
-    where: { approvalStatus: "APPROVED" },
+    where: { approvalStatus: ApprovalStatus.APPROVED },
   });
 
   // Get recent events for approval/oversight
@@ -25,7 +26,7 @@ const PrincipalEventsPage = async () => {
       class: { select: { name: true } },
     },
     take: 10,
-    orderBy: { createdAt: "desc" },
+    orderBy: [{ createdAt: "desc" }],
   });
 
   // Get events by class/department
@@ -187,24 +188,24 @@ const PrincipalEventsPage = async () => {
                         {new Intl.DateTimeFormat("en-US", {
                           dateStyle: "medium",
                           timeStyle: "short",
-                        }).format(event.startTime)}
+                        }).format(new Date(event.startTime))}
                       </p>
                     </div>
                   </div>
-
                   <div className="flex items-center gap-2">
                     <span
                       className={`px-2 py-1 rounded-full text-xs ${
-                        event.startTime > new Date()
+                        event.approvalStatus === ApprovalStatus.PENDING
                           ? "bg-green-100 text-green-800"
+                          : event.approvalStatus === ApprovalStatus.REJECTED
+                          ? "bg-orange-100 text-orange-800"
+                          : event.approvalStatus === ApprovalStatus.APPROVED
+                          ? "bg-blue-100 text-blue-800"
                           : "bg-gray-100 text-gray-800"
                       }`}
                     >
-                      {/* {event.startTime > new Date() ? "Pending" : "Completed"} */}
+                      {event.approvalStatus}
                     </span>
-                      {/* <button className="text-blue-600 text-sm hover:underline">
-                        Review
-                      </button> */}
                   </div>
                 </div>
               ))
