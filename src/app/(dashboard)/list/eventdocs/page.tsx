@@ -237,9 +237,9 @@ const EventDocumentListPage = async ({
         <div className="flex items-center gap-3">
           <Image src="/upload.png" alt="" width={20} height={20} />
           <div>
-            <h3 className="font-medium text-blue-800">Document Management Features</h3>
+            <h3 className="font-medium text-blue-800">Document Management</h3>
             <p className="text-sm text-blue-600">
-              ✓ File upload with validation ✓ Real-time storage tracking ✓ Download & preview ✓ Search & filter ✓ Role-based access control
+             
             </p>
           </div>
         </div>

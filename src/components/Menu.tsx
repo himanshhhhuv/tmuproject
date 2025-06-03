@@ -102,7 +102,7 @@ const menuItems = [
         icon: "/message.png",
         label: "Events Documents",
         href: "/list/eventdocs",
-        visible: ["admin", "teacher", "parent", "hod", "principal"],
+        visible: ["admin", "teacher", "parent", "hod", "principal", "student"],
       },
       {
         icon: "/announcement.png",
