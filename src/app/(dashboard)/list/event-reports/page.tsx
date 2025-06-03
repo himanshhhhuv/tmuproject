@@ -239,10 +239,9 @@ const EventReportListPage = async ({
         <div className="flex items-center gap-3">
           <Image src="/result.png" alt="" width={20} height={20} />
           <div>
-            <h3 className="font-medium text-green-800">Event Reporting Features</h3>
-            <p className="text-sm text-green-600">
-              ✓ Dynamic report generation ✓ Multiple report types ✓ Approval workflows ✓ Data aggregation ✓ Export capabilities ✓ Real-time analytics
-            </p>
+            <h3 className="font-medium text-green-800">Event Reporting </h3>
+
+            
           </div>
         </div>
       </div>
