@@ -8,6 +8,7 @@ import { Dispatch, SetStateAction, useEffect } from "react";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { z } from "zod";
+import { useUser } from "@clerk/nextjs";
 
 // Define the schema for event form validation
 const eventFormSchema = z.object({
@@ -77,6 +78,9 @@ const EventForm = ({
     }
   );
 
+  const { user } = useUser();
+  const role = user?.publicMetadata?.role as string;
+
   const onSubmit = handleSubmit((formData) => {
     const fd = new FormData();
     fd.append("title", formData.title);
@@ -92,6 +96,13 @@ const EventForm = ({
     );
     if (data && data.id) {
       fd.append("id", data.id.toString());
+    }
+    // Add approval fields for create
+    if (type === "create") {
+      fd.append("approvalStatus", "PENDING");
+      if (user?.id) {
+        fd.append("submittedBy", user.id);
+      }
     }
     formAction(fd);
   });
@@ -160,7 +171,11 @@ const EventForm = ({
         <span className="text-red-500">Something went wrong!</span>
       )}
       <button className="bg-blue-400 text-white p-2 rounded-md">
-        {type === "create" ? "Create" : "Update"}
+        {type === "create"
+          ? role === "hod" || role === "teacher"
+            ? "Submit for Approval"
+            : "Create Event"
+          : "Update"}
       </button>
     </form>
   );

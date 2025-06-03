@@ -7,6 +7,8 @@ import { ITEM_PER_PAGE } from "@/lib/settings";
 import { Class, Event, Prisma } from "@prisma/client";
 import Image from "next/image";
 import { auth, currentUser } from "@clerk/nextjs/server";
+import ApprovalBadge from "@/components/ApprovalBadge";
+import ApprovalActions from "@/components/ApprovalActions";
 
 type EventList = Event & { class: Class };
 
@@ -15,11 +17,10 @@ const EventListPage = async ({
 }: {
   searchParams: { [key: string]: string | undefined };
 }) => {
-
   const { userId, sessionClaims } = auth();
   const user = await currentUser();
-  
- const role = user?.publicMetadata.role as string;
+
+  const role = user?.publicMetadata.role as string;
   const currentUserId = userId;
 
   const columns = [
@@ -46,6 +47,12 @@ const EventListPage = async ({
       accessor: "endTime",
       className: "hidden md:table-cell",
     },
+    {
+      header: "Approval Status",
+      accessor: "approvalStatus",
+      className: "hidden md:table-cell",
+    },
+
     ...(role === "admin"
       ? [
           {
@@ -80,14 +87,19 @@ const EventListPage = async ({
           hour12: false,
         })}
       </td>
+      <td className="hidden md:table-cell">
+        <ApprovalBadge status={item.approvalStatus as any} />
+      </td>
       <td>
         <div className="flex items-center gap-2">
-          {role === "admin"  || role === "hod" && (
-            <>
-              <FormContainer table="event" type="update" data={item} />
-              <FormContainer table="event" type="delete" id={item.id} />
-            </>
-          )}
+          {role === "principal" && <ApprovalActions event={item} />}
+          {role === "admin" ||
+            (role === "hod" && (
+              <>
+                <FormContainer table="event" type="update" data={item} />
+                <FormContainer table="event" type="delete" id={item.id} />
+              </>
+            ))}
         </div>
       </td>
     </tr>
@@ -156,7 +168,8 @@ const EventListPage = async ({
             <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
               <Image src="/sort.png" alt="" width={14} height={14} />
             </button>
-            {role === "admin"|| role === "hod" && <FormContainer table="event" type="create" />}
+            {role === "admin" ||
+              (role === "hod" && <FormContainer table="event" type="create" />)}
           </div>
         </div>
       </div>
