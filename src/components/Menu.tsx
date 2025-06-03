@@ -16,7 +16,7 @@ const menuItems = [
         icon: "/teacher.png",
         label: "Teachers",
         href: "/list/teachers",
-        visible: ["admin",],
+        visible: ["admin"],
       },
       {
         icon: "/student.png",
@@ -64,7 +64,14 @@ const menuItems = [
         icon: "/result.png",
         label: "Events Hotspots",
         href: "/list/event-hotspots",
-        visible: ["admin", "teacher", "student", "parent  ", "hod", "principal"],
+        visible: [
+          "admin",
+          "teacher",
+          "student",
+          "parent  ",
+          "hod",
+          "principal",
+        ],
       },
       {
         icon: "/attendance.png",
@@ -76,7 +83,20 @@ const menuItems = [
         icon: "/calendar.png",
         label: "Events",
         href: "/list/events",
-        visible: ["admin", "teacher", "student", "parent" , "hod", "principal"],
+        visible: ["admin", "teacher", "student", "parent"],
+      },
+
+      {
+        icon: "/calendar.png",
+        label: "Event Details",
+        href: "/principal/events",
+        visible: ["principal"],
+      },
+      {
+        icon: "/calendar.png",
+        label: "Event Details",
+        href: "/hod/events",
+        visible: ["hod"],
       },
       {
         icon: "/message.png",

@@ -210,6 +210,8 @@ model Event {
   documents    EventDocument[]
   reports      EventReport[]
   registrations EventRegistration[]
+
+  createdAt   DateTime @default(now())
 }
 
 model EventDocument {
