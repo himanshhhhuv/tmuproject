@@ -1827,3 +1827,50 @@ export const exportEventReport = async (
     return { success: false, error: true, message: "Failed to export report" };
   }
 };
+
+export const approveEvent = async (
+  eventId: number,
+  principalId: string,
+  comments?: string
+) => {
+  try {
+    await prisma.event.update({
+      where: { id: eventId },
+      data: {
+        approvalStatus: "APPROVED",
+        approvedBy: principalId,
+        approvalDate: new Date(),
+        approvalComments: comments || null,
+        rejectionReason: null,
+      },
+    });
+    revalidatePath("/list/events");
+    return { success: true };
+  } catch (err) {
+    console.error("Error approving event:", err);
+    return { success: false, error: true };
+  }
+};
+
+export const rejectEvent = async (
+  eventId: number,
+  principalId: string,
+  reason: string
+) => {
+  try {
+    await prisma.event.update({
+      where: { id: eventId },
+      data: {
+        approvalStatus: "REJECTED",
+        approvedBy: principalId,
+        approvalDate: new Date(),
+        rejectionReason: reason,
+      },
+    });
+    revalidatePath("/list/events");
+    return { success: true };
+  } catch (err) {
+    console.error("Error rejecting event:", err);
+    return { success: false, error: true };
+  }
+};
