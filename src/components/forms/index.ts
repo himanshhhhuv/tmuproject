@@ -1,0 +1,14 @@
+export * from "./TeacherForm";
+export * from "./StudentForm";
+export * from "./SubjectForm";
+export * from "./ClassForm";
+export * from "./ExamForm";
+export * from "./AttendanceForm";
+export * from "./EventForm";
+export * from "./ParentForm";
+export * from "./LessonForm";
+export * from "./AssignmentForm";
+export * from "./AnnouncementForm";
+export * from "./ResultForm";
+export { default as EventDocumentForm } from "./EventDocumentForm";
+export { default as EventReportForm } from "./EventReportForm";
