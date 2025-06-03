@@ -60,19 +60,19 @@ const menuItems = [
         href: "/list/assignments",
         visible: ["admin", "teacher", "student", "parent"],
       },
-      {
-        icon: "/result.png",
-        label: "Events Hotspots",
-        href: "/list/event-hotspots",
-        visible: [
-          "admin",
-          "teacher",
-          "student",
-          "parent  ",
-          "hod",
-          "principal",
-        ],
-      },
+      // {
+      //   icon: "/result.png",
+      //   label: "Events Hotspots",
+      //   href: "/list/event-hotspots",
+      //   visible: [
+      //     "admin",
+      //     "teacher",
+      //     "student",
+      //     "parent  ",
+      //     "hod",
+      //     "principal",
+      //   ],
+      // },
       {
         icon: "/attendance.png",
         label: "Attendance",
