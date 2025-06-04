@@ -11,13 +11,42 @@ import { z } from "zod";
 import { useUser } from "@clerk/nextjs";
 
 // Define the schema for event form validation
-const eventFormSchema = z.object({
-  title: z.string().min(3, "Title must be at least 3 characters"),
-  description: z.string().min(10, "Description must be at least 10 characters"),
-  date: z.string(),
-  startTime: z.string(),
-  endTime: z.string(),
-});
+const eventFormSchema = z
+  .object({
+    title: z.string().min(3, "Title must be at least 3 characters"),
+    description: z
+      .string()
+      .min(10, "Description must be at least 10 characters"),
+    date: z.string(),
+    startTime: z.string(),
+    endTime: z.string(),
+  })
+  .refine(
+    (data) => {
+      // Combine date and time into Date objects
+      const now = new Date();
+      const start = new Date(`${data.date}T${data.startTime}`);
+      const end = new Date(`${data.date}T${data.endTime}`);
+      // Check that start is not before now (today's date and time)
+      return start >= now;
+    },
+    {
+      message: "Start time cannot be before the current date and time!",
+      path: ["startTime"],
+    }
+  )
+  .refine(
+    (data) => {
+      const start = new Date(`${data.date}T${data.startTime}`);
+      const end = new Date(`${data.date}T${data.endTime}`);
+      // End time must be after start time
+      return end > start;
+    },
+    {
+      message: "End time must be after start time!",
+      path: ["endTime"],
+    }
+  );
 
 type EventFormData = z.infer<typeof eventFormSchema>;
 
