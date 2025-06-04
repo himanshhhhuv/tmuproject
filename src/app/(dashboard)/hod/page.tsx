@@ -1,12 +1,37 @@
 import Announcements from "@/components/Announcements";
 import EventCalendarContainer from "@/components/EventCalendarContainer";
 import Image from "next/image";
+import prisma from "@/lib/prisma";
 
-const HODPage = ({
+const PrincipalPage = async ({
   searchParams,
 }: {
   searchParams: { [keys: string]: string | undefined };
 }) => {
+  // Fetch event statistics
+  const totalEvents = await prisma.event.count();
+  const pendingEvents = await prisma.event.count({
+    where: { approvalStatus: "PENDING" },
+  });
+  const approvedEvents = await prisma.event.count({
+    where: { approvalStatus: "APPROVED" },
+  });
+  const rejectedEvents = await prisma.event.count({
+    where: { approvalStatus: "REJECTED" },
+  });
+
+  // Fetch recent events
+  const recentEvents = await prisma.event.findMany({
+    orderBy: { createdAt: "desc" },
+    take: 5,
+    select: {
+      id: true,
+      title: true,
+      startTime: true,
+      approvalStatus: true,
+    },
+  });
+
   return (
     <div className="p-4 flex gap-4 flex-col md:flex-row">
       {/* LEFT */}
@@ -16,131 +41,92 @@ const HODPage = ({
           <h1 className="text-2xl font-bold">HOD Dashboard</h1>
           <div className="flex items-center gap-4">
             <Image src="/profile.png" alt="Profile" width={24} height={24} />
-            <span className="text-sm text-gray-500">Computer Science Department</span>
+            <span className="text-sm text-gray-500">Welcome, HOD</span>
           </div>
         </div>
 
-        {/* DEPARTMENT OVERVIEW */}
+        {/* OVERVIEW CARDS */}
         <div className="flex gap-4 justify-between flex-wrap">
           <div className="bg-white p-6 rounded-md flex-1 min-w-[200px]">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-semibold text-gray-600">Dept Events</h2>
-                <p className="text-2xl font-bold text-blue-600">12</p>
+                <h2 className="text-lg font-semibold text-gray-600">
+                  Total Events
+                </h2>
+                <p className="text-2xl font-bold text-blue-600">
+                  {totalEvents}
+                </p>
               </div>
               <Image src="/calendar.png" alt="" width={32} height={32} />
             </div>
           </div>
-          
           <div className="bg-white p-6 rounded-md flex-1 min-w-[200px]">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-semibold text-gray-600">Faculty Assigned</h2>
-                <p className="text-2xl font-bold text-green-600">18</p>
+                <h2 className="text-lg font-semibold text-gray-600">
+                  Pending Events
+                </h2>
+                <p className="text-2xl font-bold text-orange-600">
+                  {pendingEvents}
+                </p>
               </div>
-              <Image src="/teacher.png" alt="" width={32} height={32} />
+              <Image src="/calendar.png" alt="" width={32} height={32} />
             </div>
           </div>
-
           <div className="bg-white p-6 rounded-md flex-1 min-w-[200px]">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-semibold text-gray-600">Reports Due</h2>
-                <p className="text-2xl font-bold text-orange-600">5</p>
+                <h2 className="text-lg font-semibold text-gray-600">
+                  Approved Events
+                </h2>
+                <p className="text-2xl font-bold text-green-600">
+                  {approvedEvents}
+                </p>
               </div>
-              <Image src="/result.png" alt="" width={32} height={32} />
+              <Image src="/calendar.png" alt="" width={32} height={32} />
+            </div>
+          </div>
+          <div className="bg-white p-6 rounded-md flex-1 min-w-[200px]">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-600">
+                  Rejected Events
+                </h2>
+                <p className="text-2xl font-bold text-red-600">
+                  {rejectedEvents}
+                </p>
+              </div>
+              <Image src="/finance.png" alt="" width={32} height={32} />
             </div>
           </div>
         </div>
 
-        {/* DEPARTMENT ACTIONS */}
+        {/* RECENT ACTIVITIES */}
         <div className="bg-white p-6 rounded-md">
-          <h2 className="text-xl font-semibold mb-4">Department Actions</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <button className="flex flex-col items-center p-4 border rounded-md hover:bg-gray-50">
-              <Image src="/calendar.png" alt="" width={24} height={24} />
-              <span className="text-sm mt-2">Plan Events</span>
-            </button>
-            <button className="flex flex-col items-center p-4 border rounded-md hover:bg-gray-50">
-              <Image src="/teacher.png" alt="" width={24} height={24} />
-              <span className="text-sm mt-2">Assign Faculty</span>
-            </button>
-            <button className="flex flex-col items-center p-4 border rounded-md hover:bg-gray-50">
-              <Image src="/result.png" alt="" width={24} height={24} />
-              <span className="text-sm mt-2">Submit Reports</span>
-            </button>
-            <button className="flex flex-col items-center p-4 border rounded-md hover:bg-gray-50">
-              <Image src="/finance.png" alt="" width={24} height={24} />
-              <span className="text-sm mt-2">Budget Track</span>
-            </button>
-          </div>
-        </div>
-
-        {/* ONGOING EVENTS */}
-        <div className="bg-white p-6 rounded-md">
-          <h2 className="text-xl font-semibold mb-4">Ongoing Department Events</h2>
+          <h2 className="text-xl font-semibold mb-4">Recent Events</h2>
           <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 border rounded-md">
-              <div className="flex items-center gap-4">
-                <Image src="/calendar.png" alt="" width={24} height={24} />
-                <div>
-                  <h3 className="font-medium">Tech Symposium 2025</h3>
-                  <p className="text-sm text-gray-500">Status: In Progress</p>
+            {recentEvents.length > 0 ? (
+              recentEvents.map((event) => (
+                <div
+                  key={event.id}
+                  className="flex items-center gap-4 p-3 border-l-4 border-blue-500 bg-blue-50"
+                >
+                  <Image src="/calendar.png" alt="" width={20} height={20} />
+                  <div>
+                    <p className="text-sm font-medium">{event.title}</p>
+                    <p className="text-xs text-gray-500">
+                      {new Intl.DateTimeFormat("en-US", {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                      }).format(new Date(event.startTime))}{" "}
+                      - {event.approvalStatus}
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <div className="flex gap-2">
-                <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">Active</span>
-                <button className="text-blue-600 text-sm">View Details</button>
-              </div>
-            </div>
-            
-            <div className="flex items-center justify-between p-4 border rounded-md">
-              <div className="flex items-center gap-4">
-                <Image src="/calendar.png" alt="" width={24} height={24} />
-                <div>
-                  <h3 className="font-medium">Coding Competition</h3>
-                  <p className="text-sm text-gray-500">Status: Planning</p>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">Planning</span>
-                <button className="text-blue-600 text-sm">View Details</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* FACULTY PERFORMANCE */}
-        <div className="bg-white p-6 rounded-md">
-          <h2 className="text-xl font-semibold mb-4">Faculty Event Participation</h2>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm">Dr. Smith (Event Coordinator)</span>
-              <div className="flex items-center gap-2">
-                <div className="w-32 bg-gray-200 rounded-full h-2">
-                  <div className="bg-green-600 h-2 rounded-full" style={{ width: "85%" }}></div>
-                </div>
-                <span className="text-sm text-gray-600">85%</span>
-              </div>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm">Prof. Johnson (Technical Lead)</span>
-              <div className="flex items-center gap-2">
-                <div className="w-32 bg-gray-200 rounded-full h-2">
-                  <div className="bg-blue-600 h-2 rounded-full" style={{ width: "70%" }}></div>
-                </div>
-                <span className="text-sm text-gray-600">70%</span>
-              </div>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm">Dr. Williams (Student Coordinator)</span>
-              <div className="flex items-center gap-2">
-                <div className="w-32 bg-gray-200 rounded-full h-2">
-                  <div className="bg-orange-600 h-2 rounded-full" style={{ width: "60%" }}></div>
-                </div>
-                <span className="text-sm text-gray-600">60%</span>
-              </div>
-            </div>
+              ))
+            ) : (
+              <div className="text-gray-500">No recent events</div>
+            )}
           </div>
         </div>
       </div>
@@ -154,4 +140,4 @@ const HODPage = ({
   );
 };
 
-export default HODPage;
+export default PrincipalPage;
