@@ -5,18 +5,19 @@ import * as SignIn from "@clerk/elements/sign-in";
 import { useUser } from "@clerk/nextjs";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const LoginPage = () => {
   const { isLoaded, isSignedIn, user } = useUser();
+  const [showForgot, setShowForgot] = useState(false);
 
   const router = useRouter();
 
   useEffect(() => {
     if (!isLoaded) return; // Wait for clerk to load
-    
+
     const role = user?.publicMetadata.role;
-    console.log('Current role:', role);
+    console.log("Current role:", role);
 
     if (isSignedIn && role) {
       router.push(`/${role}`);
@@ -24,7 +25,11 @@ const LoginPage = () => {
   }, [isLoaded, isSignedIn, user, router]);
 
   if (!isLoaded) {
-    return <div className="h-screen flex items-center justify-center">Loading...</div>;
+    return (
+      <div className="h-screen flex items-center justify-center">
+        Loading...
+      </div>
+    );
   }
 
   return (
@@ -36,7 +41,7 @@ const LoginPage = () => {
         >
           <h1 className="text-xl font-bold flex items-center gap-2">
             <Image src="/logo.png" alt="" width={24} height={24} />
-           CCSIT PORTAL
+            CCSIT PORTAL
           </h1>
           <h2 className="text-gray-400">Sign in to your account</h2>
           <Clerk.GlobalError className="text-sm text-red-400" />
@@ -68,6 +73,18 @@ const LoginPage = () => {
           >
             Sign In
           </SignIn.Action>
+          <button
+            type="button"
+            className="text-xs text-blue-500 underline mt-2 self-end"
+            onClick={() => setShowForgot(true)}
+          >
+            Forgot Password?
+          </button>
+          {showForgot && (
+            <div className="mt-2 text-xs text-gray-700 bg-yellow-100 p-2 rounded">
+              Please contact the admin cell to reset your password.
+            </div>
+          )}
         </SignIn.Step>
       </SignIn.Root>
     </div>
