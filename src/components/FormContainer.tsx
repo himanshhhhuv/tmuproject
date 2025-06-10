@@ -73,6 +73,7 @@ const FormContainer = async ({ table, type, data, id }: FormContainerProps) => {
         break;
       case "eventDocument":
         const events = await prisma.event.findMany({
+          where: { approvalStatus: 'APPROVED' },
           select: { id: true, title: true },
           orderBy: { title: "asc" },
         });
@@ -80,6 +81,7 @@ const FormContainer = async ({ table, type, data, id }: FormContainerProps) => {
         break;
       case "eventReport":
         const eventsForReport = await prisma.event.findMany({
+          where: { approvalStatus: 'APPROVED' },
           select: { id: true, title: true },
           orderBy: { title: "asc" },
         });

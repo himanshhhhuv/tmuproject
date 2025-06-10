@@ -142,8 +142,11 @@ const EventDocumentListPage = async ({
     prisma.eventDocument.count({ where: query }),
   ]);
 
-  // Get events for the form
+  // Get events for the form (only approved events)
   const events = await prisma.event.findMany({
+    where: {
+      approvalStatus: 'APPROVED'
+    },
     select: {
       id: true,
       title: true,
