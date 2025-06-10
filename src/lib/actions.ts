@@ -1394,7 +1394,7 @@ export const createEventDocument = async (
       console.log("Buffer created, size:", buffer.byteLength);
 
       console.log("Writing file to disk...");
-      fs.writeFileSync(filePath, Buffer.from(buffer));
+      fs.writeFileSync(filePath, new Uint8Array(buffer));
       console.log("File written successfully to:", filePath);
 
       // Verify file was written
@@ -1404,12 +1404,12 @@ export const createEventDocument = async (
       } else {
         throw new Error("File was not written to disk");
       }
-    } catch (fileError) {
+    } catch (fileError: any) {
       console.error("File writing failed:", fileError);
       return {
         success: false,
         error: true,
-        message: `Failed to save file: ${fileError.message}`,
+        message: `Failed to save file: ${fileError?.message || 'Unknown error'}`,
       };
     }
 
@@ -1429,7 +1429,7 @@ export const createEventDocument = async (
         },
       });
       console.log("Database save successful, document ID:", eventDocument.id);
-    } catch (dbError) {
+    } catch (dbError: any) {
       console.error("Database save failed:", dbError);
       // Clean up the file if database save failed
       try {
@@ -1443,19 +1443,19 @@ export const createEventDocument = async (
       return {
         success: false,
         error: true,
-        message: `Database error: ${dbError.message}`,
+        message: `Database error: ${dbError?.message || 'Unknown database error'}`,
       };
     }
 
     console.log("Document upload completed successfully");
     revalidatePath("/list/eventdocs");
     return { success: true, error: false };
-  } catch (err) {
+  } catch (err: any) {
     console.error("Unexpected error in createEventDocument:", err);
     return {
       success: false,
       error: true,
-      message: `Unexpected error: ${err.message}`,
+      message: `Unexpected error: ${err?.message || 'Unknown error'}`,
     };
   }
 };
@@ -1615,7 +1615,7 @@ export const createEventReport = async (
     const reportType = formData.get("reportType") as string;
     const eventId = formData.get("eventId") as string;
     const createdBy = formData.get("createdBy") as string;
-    const dateRange = formData.get("dateRange") as string;
+    const totalParticipants = formData.get("totalParticipants") as string;
 
     if (!title || !reportType) {
       return {
@@ -1628,24 +1628,7 @@ export const createEventReport = async (
     // Generate report content based on type
     let content = "";
 
-    if (reportType === "ATTENDANCE") {
-      // Generate attendance report
-      const attendanceData = await prisma.attendance.groupBy({
-        by: ["present"],
-        _count: {
-          present: true,
-        },
-      });
-
-      const totalPresent =
-        attendanceData.find((d) => d.present)?._count.present || 0;
-      const totalAbsent =
-        attendanceData.find((d) => !d.present)?._count.present || 0;
-
-      content = `Attendance Report\n\nTotal Present: ${totalPresent}\nTotal Absent: ${totalAbsent}\nTotal Students: ${
-        totalPresent + totalAbsent
-      }`;
-    } else if (reportType === "SUMMARY") {
+    if (reportType === "SUMMARY") {
       // Generate event summary report
       const events = await prisma.event.findMany({
         where: eventId ? { id: parseInt(eventId) } : {},
@@ -1653,6 +1636,7 @@ export const createEventReport = async (
           _count: {
             select: {
               documents: true,
+              registrations: true,
             },
           },
         },
@@ -1662,8 +1646,12 @@ export const createEventReport = async (
       events.forEach((e) => {
         content += `- ${e.title} (${e.startTime.toDateString()}) - ${
           e._count.documents
-        } documents\n`;
+        } documents, ${e._count.registrations} registrations\n`;
       });
+      
+      if (totalParticipants) {
+        content += `\nTotal Participants: ${totalParticipants}`;
+      }
     } else {
       content = description || "Report content";
     }
@@ -1675,6 +1663,7 @@ export const createEventReport = async (
         reportType: reportType as any,
         eventId: parseInt(eventId),
         createdBy,
+        totalParticipants: totalParticipants ? parseInt(totalParticipants) : null,
       },
     });
 
@@ -1696,7 +1685,7 @@ export const updateEventReport = async (
     const description = formData.get("description") as string;
     const reportType = formData.get("reportType") as string;
     const eventId = formData.get("eventId") as string;
-    const dateRange = formData.get("dateRange") as string;
+    const totalParticipants = formData.get("totalParticipants") as string;
 
     if (!title || !reportType) {
       return {
@@ -1709,29 +1698,14 @@ export const updateEventReport = async (
     // Regenerate report content based on type
     let content = "";
 
-    if (reportType === "ATTENDANCE") {
-      const attendanceData = await prisma.attendance.groupBy({
-        by: ["present"],
-        _count: {
-          present: true,
-        },
-      });
-
-      const totalPresent =
-        attendanceData.find((d) => d.present)?._count.present || 0;
-      const totalAbsent =
-        attendanceData.find((d) => !d.present)?._count.present || 0;
-
-      content = `Attendance Report\n\nTotal Present: ${totalPresent}\nTotal Absent: ${totalAbsent}\nTotal Students: ${
-        totalPresent + totalAbsent
-      }`;
-    } else if (reportType === "SUMMARY") {
+    if (reportType === "SUMMARY") {
       const events = await prisma.event.findMany({
         where: eventId ? { id: parseInt(eventId) } : {},
         include: {
           _count: {
             select: {
               documents: true,
+              registrations: true,
             },
           },
         },
@@ -1741,8 +1715,12 @@ export const updateEventReport = async (
       events.forEach((e) => {
         content += `- ${e.title} (${e.startTime.toDateString()}) - ${
           e._count.documents
-        } documents\n`;
+        } documents, ${e._count.registrations} registrations\n`;
       });
+      
+      if (totalParticipants) {
+        content += `\nTotal Participants: ${totalParticipants}`;
+      }
     } else {
       content = description || "Report content";
     }
@@ -1754,6 +1732,7 @@ export const updateEventReport = async (
         content,
         reportType: reportType as any,
         eventId: parseInt(eventId),
+        totalParticipants: totalParticipants ? parseInt(totalParticipants) : null,
       },
     });
 
@@ -1809,9 +1788,9 @@ export const exportEventReport = async (
     const exportData = {
       id: report.id,
       title: report.title,
-      description: report.description,
+      content: report.content,
       reportType: report.reportType,
-      data: JSON.parse(report.reportData || "{}"),
+      totalParticipants: report.totalParticipants,
       createdAt: report.createdAt,
       event: report.event,
       format,

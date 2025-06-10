@@ -2,6 +2,8 @@ import FormContainer from "@/components/FormContainer";
 import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
 import TableSearch from "@/components/TableSearch";
+import EventReportViewModal from "@/components/EventReportViewModal";
+import EventReportDownload from "@/components/EventReportDownload";
 import prisma from "@/lib/prisma";
 import { ITEM_PER_PAGE } from "@/lib/settings";
 import { EventReport, Prisma } from "@prisma/client";
@@ -99,12 +101,8 @@ const EventReportListPage = async ({
       </td>
       <td>
         <div className="flex items-center gap-2">
-          <button className="w-7 h-7 flex items-center justify-center rounded-full bg-lamaSky">
-            <Image src="/view.png" alt="" width={16} height={16} />
-          </button>
-          <button className="w-7 h-7 flex items-center justify-center rounded-full bg-lamaYellow">
-            <Image src="/upload.png" alt="" width={16} height={16} />
-          </button>
+          <EventReportViewModal report={item} />
+          <EventReportDownload report={item} />
           {(role === "admin" || role === "principal" || role === "hod" || role === "teacher") && (
             <FormContainer table="eventReport" type="update" data={item} />
           )}

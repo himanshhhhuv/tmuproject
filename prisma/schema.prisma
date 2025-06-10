@@ -7,6 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
 model Admin {
   id       String @id
   username String @unique
@@ -239,6 +240,7 @@ model EventReport {
   title       String
   content     String
   reportType  ReportType
+  totalParticipants Int?
   createdBy   String   // User ID
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

@@ -2,28 +2,15 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import InputField from "../InputField";
 import { createEventReport, updateEventReport } from "@/lib/actions";
 import { useFormState } from "react-dom";
 import { Dispatch, SetStateAction, useEffect } from "react";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
+import { eventReportSchema, EventReportSchema } from "@/lib/formValidationSchemas";
 
-const schema = z.object({
-  id: z.coerce.number().optional(),
-  title: z.string().min(1, { message: "Title is required!" }),
-  description: z.string().optional(),
-  reportType: z.enum(
-    ["ATTENDANCE", "BUDGET", "FEEDBACK", "INCIDENT", "SUMMARY", "LOGISTICS"],
-    {
-      message: "Report type is required!",
-    }
-  ),
-  eventId: z.coerce.number().min(1, { message: "Event is required!" }),
-});
-
-type Inputs = z.infer<typeof schema>;
+type Inputs = EventReportSchema;
 
 const EventReportForm = ({
   type,
@@ -41,7 +28,7 @@ const EventReportForm = ({
     handleSubmit,
     formState: { errors },
   } = useForm<Inputs>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(eventReportSchema),
     defaultValues: data,
   });
 
@@ -64,15 +51,6 @@ const EventReportForm = ({
       router.refresh();
     }
   }, [state, router, type, setOpen]);
-
-  const reportTypes = [
-    { value: "ATTENDANCE", label: "Attendance Report" },
-    { value: "BUDGET", label: "Budget Report" },
-    { value: "FEEDBACK", label: "Feedback Report" },
-    { value: "INCIDENT", label: "Incident Report" },
-    { value: "SUMMARY", label: "Summary Report" },
-    { value: "LOGISTICS", label: "Logistics Report" },
-  ];
 
   return (
     <form className="flex flex-col gap-8" action={formAction}>
@@ -101,29 +79,17 @@ const EventReportForm = ({
       </div>
 
       <div className="flex justify-between flex-wrap gap-4">
-        <div className="flex flex-col gap-2 w-full md:w-1/4">
-          <label className="text-xs text-gray-500">Report Type</label>
-          <select
-            className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full"
-            {...register("reportType")}
-            defaultValue={data?.reportType}
-          >
-            <option value="">Select report type</option>
-            {reportTypes.map((type) => (
-              <option value={type.value} key={type.value}>
-                {type.label}
-              </option>
-            ))}
-          </select>
-          {errors.reportType?.message && (
-            <p className="text-xs text-red-400">
-              {errors.reportType.message.toString()}
-            </p>
-          )}
-        </div>
+        <InputField
+          label="Total Participants"
+          name="totalParticipants"
+          defaultValue={data?.totalParticipants}
+          register={register}
+          error={errors?.totalParticipants}
+          type="number"
+        />
 
         {relatedData?.events && (
-          <div className="flex flex-col gap-2 w-full md:w-1/4">
+          <div className="flex flex-col gap-2 w-full md:w-1/3">
             <label className="text-xs text-gray-500">Event</label>
             <select
               className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full"
@@ -159,6 +125,7 @@ const EventReportForm = ({
         />
       )}
 
+      <input type="hidden" name="reportType" value="SUMMARY" />
       <input type="hidden" name="createdBy" value="current-user-id" />
 
       {state.error && (
