@@ -96,7 +96,9 @@ const EventListPage = async ({
           {role === "admin" ||
             (role === "hod" && (
               <>
-                <FormContainer table="event" type="update" data={item} />
+                {item.approvalStatus !== "REJECTED" && (
+                  <FormContainer table="event" type="update" data={item} />
+                )}
                 <FormContainer table="event" type="delete" id={item.id} />
               </>
             ))}
